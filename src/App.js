@@ -210,7 +210,7 @@ class App extends Component {
             <Events
               config={{hide:false}}
               contract={contracts.MetaCoin}
-              eventName={"metaTransfer"}
+              eventName={"Transfer"}
               block={block}
               onUpdate={(eventData,allEvents)=>{
                 console.log("EVENT DATA:",eventData)
