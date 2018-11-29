@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
 import './App.css';
-import { Metamask, Gas, ContractLoader, Transactions, Events, Scaler, Blockie, Address, Button } from "dapparatus"
+import { Dapparatus, Gas, ContractLoader, Transactions, Events, Scaler, Blockie, Address, Button } from "dapparatus"
 import Web3 from 'web3';
+
+import axios from 'axios';
+let FALLBACK_WEB3_PROVIDER = "http://0.0.0.0:8545"
 
 class App extends Component {
   constructor(props) {
@@ -125,12 +128,68 @@ class App extends Component {
                 type="text" name="transferTo" value={this.state.transferTo} onChange={this.handleInput.bind(this)}
               />
             <Button size="2" color="green"onClick={async ()=>{
-              tx(
-                contracts.MetaCoin.transfer(this.state.transferTo,this.state.transferAmount),
-                (receipt)=>{
-                  this.setState({transferTo:"",transferAmount:""})
+              if(this.state.metaAccount||this.state.balance===0){
+                console.log("This will be a custom meta transaction")
+                const method = "metaTransfer"
+                const reward = 0
+                //get the nonce from the contract
+                const nonce = await contracts.MetaCoin.replayNonce(this.state.account).call()
+                console.log("nonce:",nonce)
+                //address to, uint256 value, uint256 nonce, uint256 reward
+                const args = [
+                  this.state.transferTo,
+                  web3.utils.toTwosComplement(this.state.transferAmount),
+                  web3.utils.toTwosComplement(nonce),
+                  web3.utils.toTwosComplement(reward)
+                ]
+                console.log("args:",args)
+                //get the hash of the arguments from the contract
+                const message = await contracts.MetaCoin[method+'Hash'](...args).call()
+                console.log("message:",message)
+                let sig
+                //sign the hash using either the meta account OR the etherless account
+                if(this.state.metaAccount.privateKey){
+                  console.log(this.state.metaAccount.privateKey)
+                  sig = web3.eth.accounts.sign(message, this.state.metaAccount.privateKey);
+                  sig = sig.signature
+                }else{
+                  sig = await web3.eth.personal.sign(""+message,this.state.account)
                 }
-              )
+                console.log("sig:",sig)
+                //package up the details of the POST
+                let postData = {
+                  gas: 100000,
+                  message: message,
+                  args:args,
+                  sig:sig,
+                  method:method,
+                }
+                console.log("postData:",postData)
+                //post the data to the relayer
+                axios.post('http://0.0.0.0:9999/tx', postData, {
+                  headers: {
+                      'Content-Type': 'application/json',
+                  }
+                }).then((response)=>{
+                  console.log("TX RESULT",response.data)
+                  let hash = response.data.transactionHash
+                  console.log("adding custom tx with hash",hash)
+                  //add the custom transaction to the <Transactions/> component
+                  this.state.customtx(hash,(receipt)=>{
+                    console.log("TX RECEIPT",receipt)
+                  })
+                })
+                .catch((error)=>{
+                  console.log(error);
+                });
+              }else{
+                tx(
+                  contracts.MetaCoin.transfer(this.state.transferTo,this.state.transferAmount),
+                  (receipt)=>{
+                    this.setState({transferTo:"",transferAmount:""})
+                  }
+                )
+              }
             }}>
               Send
             </Button>
@@ -165,8 +224,9 @@ class App extends Component {
     }
     return (
       <div className="App">
-        <Metamask
+        <Dapparatus
           config={{requiredNetwork:['Unknown','Rinkeby']}}
+          fallbackWeb3Provider={new Web3.providers.HttpProvider(FALLBACK_WEB3_PROVIDER)}
           onUpdate={(state)=>{
            console.log("metamask state update:",state)
            if(state.web3Provider) {
