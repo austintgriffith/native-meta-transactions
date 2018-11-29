@@ -34,7 +34,7 @@ class App extends Component {
          }}
        />
       )
-      /*
+
       connectedDisplay.push(
         <ContractLoader
          key="ContractLoader"
@@ -69,33 +69,21 @@ class App extends Component {
             console.log("Transaction Receipt",transaction,receipt)
           }}
         />
-      )*/
-      /*
+      )
+      
       if(contracts){
         contractsDisplay.push(
           <div key="UI" style={{padding:30}}>
             <div>
-              <Address
+              MetaCoin: <Address
                 {...this.state}
-                address={contracts.YOURCONTRACT._address}
+                address={contracts.MetaCoin._address}
               />
             </div>
-            broadcast string: <input
-                style={{verticalAlign:"middle",width:400,margin:6,maxHeight:20,padding:5,border:'2px solid #ccc',borderRadius:5}}
-                type="text" name="broadcastText" value={this.state.broadcastText} onChange={this.handleInput.bind(this)}
-            />
-            <Button color={this.state.doingTransaction?"orange":"green"} size="2" onClick={()=>{
-                this.setState({doingTransaction:true})
-                //tx(contracts.YOURCONTRACT.YOURFUNCTION(YOURARGUMENTS),(receipt)=>{
-                //  this.setState({doingTransaction:false})
-                //})
-              }}>
-              Send
-            </Button>
             <Events
               config={{hide:false}}
-              contract={contracts.YOURCONTRACT}
-              eventName={"YOUREVENT"}
+              contract={contracts.MetaCoin}
+              eventName={"metaTransfer"}
               block={block}
               onUpdate={(eventData,allEvents)=>{
                 console.log("EVENT DATA:",eventData)
@@ -105,7 +93,7 @@ class App extends Component {
           </div>
         )
       }
-      */
+
     }
     return (
       <div className="App">
