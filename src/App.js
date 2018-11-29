@@ -13,6 +13,16 @@ class App extends Component {
       doingTransaction: false,
     }
   }
+  async poll(){
+    if(this.state&&this.state.contracts){
+      console.log("this.state.account",this.state.account)
+      let metaCoinBalance = await this.state.contracts.MetaCoin.balanceOf(this.state.account).call()
+      let isMinter = await this.state.contracts.MetaCoin.isMinter(this.state.account).call()
+      if(metaCoinBalance!=this.state.metaCoinBalance||isMinter!=this.state.isMinter){
+        this.setState({metaCoinBalance:metaCoinBalance,isMinter:isMinter})
+      }
+    }
+  }
   handleInput(e){
     let update = {}
     update[e.target.name] = e.target.value
@@ -45,6 +55,7 @@ class App extends Component {
            console.log("contracts loaded",contracts)
            this.setState({contracts:contracts},async ()=>{
              console.log("Contracts Are Ready:",this.state.contracts)
+             setInterval(this.poll.bind(this),3000);this.poll()
            })
          }}
         />
@@ -70,8 +81,62 @@ class App extends Component {
           }}
         />
       )
-      
+
       if(contracts){
+
+        let minterView = ""
+        if(this.state.isMinter){
+          minterView = (
+            <div>
+              Mint <input
+                style={{verticalAlign:"middle",width:50,margin:6,maxHeight:20,padding:5,border:'2px solid #ccc',borderRadius:5}}
+                type="text" name="mintAmount" value={this.state.mintAmount} onChange={this.handleInput.bind(this)}
+              /> metacoins to <input
+                  style={{verticalAlign:"middle",width:300,margin:6,maxHeight:20,padding:5,border:'2px solid #ccc',borderRadius:5}}
+                  type="text" name="mintTo" value={this.state.mintTo} onChange={this.handleInput.bind(this)}
+                />
+              <Button size="2" color="green" onClick={async ()=>{
+                tx(
+                  contracts.MetaCoin.mint(this.state.mintTo,this.state.mintAmount),
+                  (receipt)=>{
+                    this.setState({mintTo:"",mintAmount:""})
+                  }
+                )
+              }}>
+                Mint
+              </Button>
+            </div>
+          )
+        }
+
+        let balanceView = (
+          <div>
+            MetaCoin Balance: <span style={{color:"#FFFFFF"}}>{this.state.metaCoinBalance}</span>
+          </div>
+        )
+
+        let transferView = (
+          <div>
+            Transfer <input
+              style={{verticalAlign:"middle",width:50,margin:6,maxHeight:20,padding:5,border:'2px solid #ccc',borderRadius:5}}
+              type="text" name="transferAmount" value={this.state.transferAmount} onChange={this.handleInput.bind(this)}
+            /> metacoins to <input
+                style={{verticalAlign:"middle",width:300,margin:6,maxHeight:20,padding:5,border:'2px solid #ccc',borderRadius:5}}
+                type="text" name="transferTo" value={this.state.transferTo} onChange={this.handleInput.bind(this)}
+              />
+            <Button size="2" color="green"onClick={async ()=>{
+              tx(
+                contracts.MetaCoin.transfer(this.state.transferTo,this.state.transferAmount),
+                (receipt)=>{
+                  this.setState({transferTo:"",transferAmount:""})
+                }
+              )
+            }}>
+              Send
+            </Button>
+          </div>
+        )
+
         contractsDisplay.push(
           <div key="UI" style={{padding:30}}>
             <div>
@@ -80,6 +145,9 @@ class App extends Component {
                 address={contracts.MetaCoin._address}
               />
             </div>
+            {minterView}
+            {balanceView}
+            {transferView}
             <Events
               config={{hide:false}}
               contract={contracts.MetaCoin}

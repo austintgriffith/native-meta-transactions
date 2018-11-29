@@ -158,7 +158,19 @@ module.exports = {
   ////----------------------------------------------------------------------------///////////////////
 
 
-  ////    ADD YOUR TESTS HERE <<<<<<<<--------------------------------
+  addMinter:(accountindex,newMinter)=>{
+    describe('#addMinter() ', function() {
+      it('should add account '+(newMinter+"").cyan+' as a '+'Minter'.blue, async function() {
+        this.timeout(120000)
+        const result = await clevis("contract","addMinter","MetaCoin",accountindex,newMinter)
+        printTxResult(result)
+        const isMinter = await clevis("contract","isMinter","MetaCoin",newMinter)
+        console.log(tab,"Can "+newMinter.green+" mint tokens?",isMinter)
+        assert(isMinter,"addMinter failed!".red)
+      });
+    });
+  },
+
 
 
   ////----------------------------------------------------------------------------///////////////////
