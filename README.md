@@ -10,4 +10,4 @@ I think it's important to highlight that if you are able to deploy fresh contrac
 
 Let's build an ERC20 token that gives etherless accounts the ability to transfer() and we'll build a relay that pays the gas.
 
-![[screencast](https://user-images.githubusercontent.com/2653167/49298483-c4d0b600-f47a-11e8-97ae-f539ab5d0bc0.png)](https://youtu.be/tnLsBvzYu_A)
+[![screencast](https://user-images.githubusercontent.com/2653167/49298483-c4d0b600-f47a-11e8-97ae-f539ab5d0bc0.png)](https://youtu.be/tnLsBvzYu_A)
