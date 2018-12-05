@@ -17,6 +17,8 @@ contract MetaCoin is ERC20Mintable {
   function metaTransfer(bytes signature, address to, uint256 value, uint256 nonce, uint256 reward) public returns (bool) {
     bytes32 metaHash = metaTransferHash(to,value,nonce,reward);
     address signer = getSigner(metaHash,signature);
+    //make sure signer doesn't come back as signer
+    require(signer!=address(0));
     require(nonce == replayNonce[signer]);
     replayNonce[signer]++;
     _transfer(signer, to, value);
